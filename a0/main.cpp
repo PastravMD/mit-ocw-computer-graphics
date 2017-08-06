@@ -10,6 +10,7 @@
 using namespace std;
 
 // Globals
+#define MAX_BUFFER_SIZE (100)
 
 // This is the list of points (3D vectors)
 vector<Vector3f> vecv;
@@ -66,22 +67,18 @@ void specialFunc( int key, int x, int y )
     case GLUT_KEY_UP:
         // add code to change light position
 	LightVPos += 0.3;
-		cout << "Vertical light position ++" << endl;
 		break;
     case GLUT_KEY_DOWN:
         // add code to change light position
 	LightVPos -= 0.3;
-		cout << "Vertical light position --" << endl;
 		break;
     case GLUT_KEY_LEFT:
         // add code to change light position
 	LightHPos -= 0.3;
-		cout << "Horizontal light position --" << endl;
 		break;
     case GLUT_KEY_RIGHT:
         // add code to change light position
 	LightHPos += 0.3;
-		cout << "Horizontal light position ++" << endl;
 		break;
     }
 
@@ -90,7 +87,7 @@ void specialFunc( int key, int x, int y )
 }
 
 
-void drawShit(void)
+void drawTriangles(void)
 {
 glBegin(GL_TRIANGLES);
 	for (long unsigned i=0; i < vecf.size(); i++)
@@ -160,7 +157,7 @@ void drawScene(void)
 	// it with code which draws the object you loaded.
 	//glutSolidTeapot(1.0);
 
-    drawShit();
+    drawTriangles();
     
     // Dump the image to the screen.
     glutSwapBuffers();
@@ -198,83 +195,59 @@ void loadInput()
 {
 	// load the OBJ file here
 	std::ifstream objfile("garg.obj");
-	string txtline;
-	string token;
+	char txtline[MAX_BUFFER_SIZE];
+	string start_token;
 
-	while (getline(objfile, txtline))
+	//while (getline(objfile, txtline))
+	while (cin.getline(txtline, MAX_BUFFER_SIZE))
 	{
-		istringstream iss(txtline);
-		getline(iss, token, ' ');
+		istringstream linestream(txtline);
+		linestream >> start_token;
 
-		if (token.compare("v") == 0)
+		if (start_token == "v")
 		{
-			getline(iss, token, ' ');
-			float v0 = stof(token);
-			getline(iss, token, ' ');
-			float v1 = stof(token);
-			getline(iss, token, ' ');
-			float v2 = stof(token);
-			Vector3f v3v(v0,v1,v2);
-			vecv.push_back(v3v);
+			float t[3];
+			for (unsigned i = 0; i < 3; i ++)
+			{
+				string token;
+				linestream >> token;
+				t[i] = stof(token);
+			}
+			Vector3f v3(t[0],t[1],t[2]);
+			vecv.push_back(v3);
 		}
 
-		if (token.compare("vn") == 0)
+		if (start_token == "vn")
 		{
-			getline(iss, token, ' ');
-			float v0 = stof(token);
-			getline(iss, token, ' ');
-			float v1 = stof(token);
-			getline(iss, token, ' ');
-			float v2 = stof(token);
-			Vector3f v3vn(v0,v1,v2);
-			vecn.push_back(v3vn);
+			float t[3];
+			for (unsigned i = 0; i < 3; i ++)
+			{
+				string token;
+				linestream >> token;
+				t[i] = stof(token);
+			}
+			Vector3f v3(t[0],t[1],t[2]);
+			vecn.push_back(v3);
 		}
 
-		if (token.compare("f") == 0)
+		if (start_token == "f")
 		{
 			vector<unsigned> vf;
-			getline(iss, token, ' ');
+			for (unsigned i = 0; i < 3; i++)
 			{
-				string subtok;
-				istringstream subiss(token);
-				getline(subiss, subtok, '/');
-				unsigned f0 = stoul(subtok);
-				getline(subiss, subtok, '/');
-				unsigned f1 = stoul(subtok);
-				getline(subiss, subtok, '/');
-				unsigned f2 = stoul(subtok);
-				vf.push_back(f0);
-				vf.push_back(f1);
-				vf.push_back(f2);
-			}
+				string token;
+				linestream >> token;
+				istringstream vstr(token);
 
-			getline(iss, token, ' ');
-			{
-				string subtok;
-				istringstream subiss(token);
-				getline(subiss, subtok, '/');
-				unsigned f0 = stoul(subtok);
-				getline(subiss, subtok, '/');
-				unsigned f1 = stoul(subtok);
-				getline(subiss, subtok, '/');
-				unsigned f2 = stoul(subtok);
-				vf.push_back(f0);
-				vf.push_back(f1);
-				vf.push_back(f2);
-			}
-			getline(iss, token, ' ');
-			{
-				string subtok;
-				istringstream subiss(token);
-				getline(subiss, subtok, '/');
-				unsigned f0 = stoul(subtok);
-				getline(subiss, subtok, '/');
-				unsigned f1 = stoul(subtok);
-				getline(subiss, subtok, '/');
-				unsigned f2 = stoul(subtok);
-				vf.push_back(f0);
-				vf.push_back(f1);
-				vf.push_back(f2);
+				// get (a,d,g), (b,e,h) and (c,f,i) components
+				for (unsigned k = 0; k < 3; k++)
+				{
+					string subtoken;
+					unsigned idx;
+					getline(vstr, subtoken, '/');
+					idx = stoul(subtoken);
+					vf.push_back(idx);
+				}
 			}
 			vecf.push_back(vf);
 		}
