@@ -1,9 +1,10 @@
 #include <GL/glut.h>
+#include "GL/freeglut.h"
 #include <cmath>
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <vecmath.h>
+#include "vecmath.h"
 using namespace std;
 
 // Globals
@@ -19,6 +20,9 @@ vector<vector<unsigned> > vecf;
 
 
 // You will need more global variables to implement color and position changes
+unsigned char CycleColor = 0;
+float LightHPos = 1.0;
+float LightVPos = 1.0;
 
 
 // These are convenience functions which allow us to call OpenGL 
@@ -41,6 +45,7 @@ void keyboardFunc( unsigned char key, int x, int y )
     case 'c':
         // add code to change color here
 		cout << "Unhandled key press " << key << "." << endl; 
+		CycleColor = (CycleColor + 1) & 0b11;
         break;
     default:
         cout << "Unhandled key press " << key << "." << endl;        
@@ -58,19 +63,23 @@ void specialFunc( int key, int x, int y )
     {
     case GLUT_KEY_UP:
         // add code to change light position
-		cout << "Unhandled key press: up arrow." << endl;
+	LightVPos += 0.3;
+		cout << "Vertical light position ++" << endl;
 		break;
     case GLUT_KEY_DOWN:
         // add code to change light position
-		cout << "Unhandled key press: down arrow." << endl;
+	LightVPos -= 0.3;
+		cout << "Vertical light position --" << endl;
 		break;
     case GLUT_KEY_LEFT:
         // add code to change light position
-		cout << "Unhandled key press: left arrow." << endl;
+	LightHPos += 0.3;
+		cout << "Horizontal light position ++" << endl;
 		break;
     case GLUT_KEY_RIGHT:
         // add code to change light position
-		cout << "Unhandled key press: right arrow." << endl;
+	LightHPos -= 0.3;
+		cout << "Horizontal light position --" << endl;
 		break;
     }
 
@@ -105,7 +114,7 @@ void drawScene(void)
                                  {0.3, 0.8, 0.9, 1.0} };
     
 	// Here we use the first color entry as the diffuse color
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, diffColors[0]);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, diffColors[CycleColor]);
 
 	// Define specular color and shininess
     GLfloat specColor[] = {1.0, 1.0, 1.0, 1.0};
@@ -120,7 +129,7 @@ void drawScene(void)
     // Light color (RGBA)
     GLfloat Lt0diff[] = {1.0,1.0,1.0,1.0};
     // Light position
-	GLfloat Lt0pos[] = {1.0f, 1.0f, 5.0f, 1.0f};
+    GLfloat Lt0pos[] = {LightHPos, LightVPos, 5.0f, 1.0f};
 
     glLightfv(GL_LIGHT0, GL_DIFFUSE, Lt0diff);
     glLightfv(GL_LIGHT0, GL_POSITION, Lt0pos);
