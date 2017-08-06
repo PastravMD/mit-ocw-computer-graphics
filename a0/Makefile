@@ -17,7 +17,6 @@ all: $(SRCS) $(PROG)
 
 $(PROG): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $@ $(INCFLAGS) $(LINKFLAGS)
-	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(VECLIBDIR)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -c -o $@ $(INCFLAGS)
