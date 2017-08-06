@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <fstream>
+#include <string.h>
 #include <vector>
 #include "vecmath.h"
 using namespace std;
@@ -73,18 +75,38 @@ void specialFunc( int key, int x, int y )
 		break;
     case GLUT_KEY_LEFT:
         // add code to change light position
-	LightHPos += 0.3;
-		cout << "Horizontal light position ++" << endl;
+	LightHPos -= 0.3;
+		cout << "Horizontal light position --" << endl;
 		break;
     case GLUT_KEY_RIGHT:
         // add code to change light position
-	LightHPos -= 0.3;
-		cout << "Horizontal light position --" << endl;
+	LightHPos += 0.3;
+		cout << "Horizontal light position ++" << endl;
 		break;
     }
 
 	// this will refresh the screen so that the user sees the light position
     glutPostRedisplay();
+}
+
+
+void drawShit(void)
+{
+glBegin(GL_TRIANGLES);
+	for (long unsigned i=0; i < vecf.size(); i++)
+	{
+		vector<unsigned> f = vecf[i];
+		glNormal3d(vecn[f[2]-1][0],vecn[f[2]-1][1],vecn[f[2]-1][2]);
+		glVertex3d(vecv[f[0]-1][0],vecv[f[0]-1][1],vecv[f[0]-1][2]);
+
+		glNormal3d(vecn[f[5]-1][0],vecn[f[5]-1][1],vecn[f[5]-1][2]);
+		glVertex3d(vecv[f[3]-1][0],vecv[f[3]-1][1],vecv[f[3]-1][2]);
+
+		glNormal3d(vecn[f[8]-1][0],vecn[f[8]-1][1],vecn[f[8]-1][2]);
+		glVertex3d(vecv[f[6]-1][0],vecv[f[6]-1][1],vecv[f[6]-1][2]);
+	}
+
+glEnd();
 }
 
 // This function is responsible for displaying the object.
@@ -136,7 +158,9 @@ void drawScene(void)
 
 	// This GLUT method draws a teapot.  You should replace
 	// it with code which draws the object you loaded.
-	glutSolidTeapot(1.0);
+	//glutSolidTeapot(1.0);
+
+    drawShit();
     
     // Dump the image to the screen.
     glutSwapBuffers();
@@ -173,6 +197,88 @@ void reshapeFunc(int w, int h)
 void loadInput()
 {
 	// load the OBJ file here
+	std::ifstream objfile("garg.obj");
+	string txtline;
+	string token;
+
+	while (getline(objfile, txtline))
+	{
+		istringstream iss(txtline);
+		getline(iss, token, ' ');
+
+		if (token.compare("v") == 0)
+		{
+			getline(iss, token, ' ');
+			float v0 = stof(token);
+			getline(iss, token, ' ');
+			float v1 = stof(token);
+			getline(iss, token, ' ');
+			float v2 = stof(token);
+			Vector3f v3v(v0,v1,v2);
+			vecv.push_back(v3v);
+		}
+
+		if (token.compare("vn") == 0)
+		{
+			getline(iss, token, ' ');
+			float v0 = stof(token);
+			getline(iss, token, ' ');
+			float v1 = stof(token);
+			getline(iss, token, ' ');
+			float v2 = stof(token);
+			Vector3f v3vn(v0,v1,v2);
+			vecn.push_back(v3vn);
+		}
+
+		if (token.compare("f") == 0)
+		{
+			vector<unsigned> vf;
+			getline(iss, token, ' ');
+			{
+				string subtok;
+				istringstream subiss(token);
+				getline(subiss, subtok, '/');
+				unsigned f0 = stoul(subtok);
+				getline(subiss, subtok, '/');
+				unsigned f1 = stoul(subtok);
+				getline(subiss, subtok, '/');
+				unsigned f2 = stoul(subtok);
+				vf.push_back(f0);
+				vf.push_back(f1);
+				vf.push_back(f2);
+			}
+
+			getline(iss, token, ' ');
+			{
+				string subtok;
+				istringstream subiss(token);
+				getline(subiss, subtok, '/');
+				unsigned f0 = stoul(subtok);
+				getline(subiss, subtok, '/');
+				unsigned f1 = stoul(subtok);
+				getline(subiss, subtok, '/');
+				unsigned f2 = stoul(subtok);
+				vf.push_back(f0);
+				vf.push_back(f1);
+				vf.push_back(f2);
+			}
+			getline(iss, token, ' ');
+			{
+				string subtok;
+				istringstream subiss(token);
+				getline(subiss, subtok, '/');
+				unsigned f0 = stoul(subtok);
+				getline(subiss, subtok, '/');
+				unsigned f1 = stoul(subtok);
+				getline(subiss, subtok, '/');
+				unsigned f2 = stoul(subtok);
+				vf.push_back(f0);
+				vf.push_back(f1);
+				vf.push_back(f2);
+			}
+			vecf.push_back(vf);
+		}
+	}
 }
 
 // Main routine.
