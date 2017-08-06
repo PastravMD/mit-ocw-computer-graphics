@@ -1,8 +1,11 @@
+#!/usr/bin/make
+
+VECLIBDIR = $(PWD)/../vecmath
 INCFLAGS  = -I /usr/include/GL
-INCFLAGS += -I /mit/6.837/public/include/vecmath
+INCFLAGS += -I $(VECLIBDIR)/include
 
 LINKFLAGS  = -lglut -lGL -lGLU
-LINKFLAGS += -L /mit/6.837/public/lib -lvecmath
+LINKFLAGS += -L $(VECLIBDIR) -lvecmath
 
 CFLAGS    = -O2
 CC        = g++
@@ -14,6 +17,7 @@ all: $(SRCS) $(PROG)
 
 $(PROG): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $@ $(INCFLAGS) $(LINKFLAGS)
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(VECLIBDIR)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -c -o $@ $(INCFLAGS)
