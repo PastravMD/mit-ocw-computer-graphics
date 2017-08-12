@@ -67,7 +67,7 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
 	M[2].print();
 
 	printf(" -------------- \n ");
-	for (float t = step; t < 1.0; t += step)
+	for (float t = 0.0; t <=  1.0 + step; t += step)
 	{
 		Vector4f T(1.0, t, t*t, t*t*t);
 		printf(" T matrix: \n");
