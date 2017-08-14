@@ -10,10 +10,24 @@
 #include "stdio.h"
 using namespace std;
 
-Matrix4f BezierMatrix(1.0, -3.0,  3.0, -1.0,
-			0.0, 3.0, -6.0,  3.0,
-			0.0, 0.0,  3.0, -3.0,
-			0.0, 0.0,  0.0,  1.0); 
+const Matrix4f BezierMatrix(1.0, -3.0,  3.0, -1.0,
+				0.0, 3.0, -6.0,  3.0,
+				0.0, 0.0,  3.0, -3.0,
+				0.0, 0.0,  0.0,  1.0); 
+
+const Matrix4f BezierMatrixTr = BezierMatrix.transposed();
+
+//const Matrix4f DerivBezier(-3.0, 6.0, -3.0, 0.0,
+//				3.0, -12.0, 9.0, 0.0,
+//				0.0,  6.0, -9.0, 0.0,
+//				3.0,  0.0,  0.0, 0.0);
+Matrix4f DerivBezier(	 3.0,  -3.0,  0.0, 0.0,
+				 6.0, -12.0,  6.0, 0.0,
+				-3.0,   9.0, -9.0, 3.0,
+				 0.0,   0.0,  0.0, 0.0);
+
+
+Matrix4f DerivBezierTr = DerivBezier.transposed();
 
 namespace
 {
@@ -43,49 +57,61 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
 	Vector4f Y(P[0].y(), P[1].y(), P[2].y(), P[3].y());
 	Vector4f Z(P[0].z(), P[1].z(), P[2].z(), P[3].z());
 
-	printf(" \n Geometry matrix: \n");
-	X.print();
-	Y.print();
-	Z.print();
-
-	printf(" \n Bezier matrix: \n");
-	BezierMatrix.print();
-
 	float step = 1.0 / steps;
 
 	//for (int i=0; i <= 3; i++)
 	//{
-	BezierMatrix.transpose();
-	M[0] = BezierMatrix * X;
-	M[1] = BezierMatrix * Y;
-	M[2] = BezierMatrix * Z;
-	//}
-	
-	printf(" \n thing matrix: \n ");
-	M[0].print();
-	M[1].print();
-	M[2].print();
+	M[0] = BezierMatrixTr * X;
+	M[1] = BezierMatrixTr * Y;
+	M[2] = BezierMatrixTr * Z;
 
-	printf(" -------------- \n ");
+	// TODO: put x,y,z,0 into a proper matrix
+	Matrix4f TG(DerivBezierTr * X,
+			DerivBezierTr * Y,
+			DerivBezierTr * Z,
+			Vector4f(0.0));
+	//} 
+
+printf("\n Bezier prime: \n");
+	DerivBezier.print();
+
+printf("\n Bezier prime transposed: \n");
+	DerivBezierTr.print();
+	
+	printf(" \n-------------- \n ");
 	for (float t = 0.0; t <=  1.0 + step; t += step)
 	{
+		CurvePoint C;
 		Vector4f T(1.0, t, t*t, t*t*t);
-		printf(" T matrix: \n");
-		T.print();
 		float a=M[0].dot(M[0], T);
 		float b=M[1].dot(M[1], T);
 		float c=M[2].dot(M[2], T);
-		CurvePoint C;
 		Vector3f PV(a, b, c);
-		printf(" curve point: \n");
-		PV.print();
 		C.V = PV;
-		cerr << setprecision(2) << "\t>>> Curve point @  " << t << " = (" << \
-			a << " : "<< b << " : " << c << ") "<<  endl;
-			//c.V[0] << " : "<< c.V[1] << " : " << c.V[2] << ") "<<  endl;
+
+		// this could be generated easier via transposition
+		//Matrix4f TT(Vector4f(1.0, Vector3f(0)),
+		//		Vector4f(t, Vector3f(0)),
+		//		Vector4f(t*t, Vector3f(0)),
+		//		Vector4f(t*t*t, Vector3f(0)));
+		
+		a=Vector4f::dot(TG.getRow(0), T);
+		b=Vector4f::dot(TG.getRow(1), T);
+		c=Vector4f::dot(TG.getRow(2), T);
+		Vector3f PT(a, b, c);
+		PT = PT.normalized();
+
+
+
+		C.T = PT;
+
+
 		ret.push_back(C);
 	}
 	
+// calculate tangent vector
+	
+
 	printf("---------------------");
 
 	// TODO:
