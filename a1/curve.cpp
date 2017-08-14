@@ -17,15 +17,10 @@ const Matrix4f BezierMatrix(1.0, -3.0,  3.0, -1.0,
 
 const Matrix4f BezierMatrixTr = BezierMatrix.transposed();
 
-//const Matrix4f DerivBezier(-3.0, 6.0, -3.0, 0.0,
-//				3.0, -12.0, 9.0, 0.0,
-//				0.0,  6.0, -9.0, 0.0,
-//				3.0,  0.0,  0.0, 0.0);
-Matrix4f DerivBezier(	 3.0,  -3.0,  0.0, 0.0,
-				 6.0, -12.0,  6.0, 0.0,
-				-3.0,   9.0, -9.0, 3.0,
-				 0.0,   0.0,  0.0, 0.0);
-
+Matrix4f DerivBezier(	 0.0, -3.0,   6.0, -3.0,
+			 0.0,  3.0, -12.0,  9.0,
+			 0.0,  0.0,   6.0, -9.0,
+			 0.0,  0.0,   0.0,  3.0);
 
 Matrix4f DerivBezierTr = DerivBezier.transposed();
 
@@ -52,57 +47,30 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
 		exit( 0 );
 	}
 
-	Vector4f M[3];
-	Vector4f X(P[0].x(), P[1].x(), P[2].x(), P[3].x());
-	Vector4f Y(P[0].y(), P[1].y(), P[2].y(), P[3].y());
-	Vector4f Z(P[0].z(), P[1].z(), P[2].z(), P[3].z());
+	Matrix4f ctrl(P[0].x(), P[1].x(), P[2].x(), P[3].x(),
+			P[0].y(), P[1].y(), P[2].y(), P[3].y(),
+			P[0].z(), P[1].z(), P[2].z(), P[3].z(),
+			0.0, 0.0, 0.0, 0.0);
+	Matrix4f q(ctrl * BezierMatrix);
+	Matrix4f tang(ctrl * DerivBezier);
 
 	float step = 1.0 / steps;
-
-	//for (int i=0; i <= 3; i++)
-	//{
-	M[0] = BezierMatrixTr * X;
-	M[1] = BezierMatrixTr * Y;
-	M[2] = BezierMatrixTr * Z;
-
-	// TODO: put x,y,z,0 into a proper matrix
-	Matrix4f TG(DerivBezierTr * X,
-			DerivBezierTr * Y,
-			DerivBezierTr * Z,
-			Vector4f(0.0));
-	//} 
-
-printf("\n Bezier prime: \n");
-	DerivBezier.print();
-
-printf("\n Bezier prime transposed: \n");
-	DerivBezierTr.print();
 	
-	printf(" \n-------------- \n ");
 	for (float t = 0.0; t <=  1.0 + step; t += step)
 	{
 		CurvePoint C;
 		Vector4f T(1.0, t, t*t, t*t*t);
-		float a=M[0].dot(M[0], T);
-		float b=M[1].dot(M[1], T);
-		float c=M[2].dot(M[2], T);
+		float a=Vector4f::dot(q.getRow(0), T);
+		float b=Vector4f::dot(q.getRow(1), T);
+		float c=Vector4f::dot(q.getRow(2), T);
 		Vector3f PV(a, b, c);
 		C.V = PV;
 
-		// this could be generated easier via transposition
-		//Matrix4f TT(Vector4f(1.0, Vector3f(0)),
-		//		Vector4f(t, Vector3f(0)),
-		//		Vector4f(t*t, Vector3f(0)),
-		//		Vector4f(t*t*t, Vector3f(0)));
-		
-		a=Vector4f::dot(TG.getRow(0), T);
-		b=Vector4f::dot(TG.getRow(1), T);
-		c=Vector4f::dot(TG.getRow(2), T);
+		a=Vector4f::dot(tang.getRow(0), T);
+		b=Vector4f::dot(tang.getRow(1), T);
+		c=Vector4f::dot(tang.getRow(2), T);
 		Vector3f PT(a, b, c);
 		PT = PT.normalized();
-
-
-
 		C.T = PT;
 
 
